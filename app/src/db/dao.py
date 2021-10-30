@@ -26,9 +26,10 @@ def get_all_investor() -> list[Investor]:
     investors: list[Investor] = []
     db_cnx: MySQLConnection = get_cnx()
     cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
-    sql: str = 'select * from investor'
+    sql: str = 'select * from investor_detail'
     cursor.execute(sql)
     results: list[dict] = cursor.fetchall()
+    
     for row in results:
         investors.append(Investor(row['name'], row['status'], row['id']))
     db_cnx.close()
@@ -170,4 +171,4 @@ def sell_stock(ticket: str, quantity: int, sale_price: float) -> None:
     # output: 8 APPLE shares at $1/share with account balance = 100 + 2 * (12 - 10) = $104
     pass
 
-get_all_investor()
+
