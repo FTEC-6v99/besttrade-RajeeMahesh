@@ -65,7 +65,7 @@ def get_investors_by_name(name: str) -> list[Investor]:
         for row in rows:
             investors.append(Investor(row['name'], row['status'], row['id']))
     db_cnx.close()
-    return investors
+    return investors 
 
 
 def create_investor(investor: Investor) -> None:
@@ -169,3 +169,5 @@ def sell_stock(ticket: str, quantity: int, sale_price: float) -> None:
     # event: sale of 2 shares for $2/share
     # output: 8 APPLE shares at $1/share with account balance = 100 + 2 * (12 - 10) = $104
     pass
+
+get_all_investor()
