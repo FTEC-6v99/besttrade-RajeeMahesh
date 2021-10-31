@@ -4,3 +4,4 @@ class Investor():
         self.id = id
         self.name = name
         self.status = status
+
