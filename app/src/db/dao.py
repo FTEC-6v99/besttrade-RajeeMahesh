@@ -298,15 +298,6 @@ def buy_stock(id: int, ticker_to_buy: str,  quantity: int, price: float) -> None
         db_cnx.close()
         return account_number 
 
-    def fetch_stockprice():
-        db_cnx: MySQLConnection = get_cnx()
-        cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
-        sql: str = 'select current_price from account where ticker = %s'
-        cursor.execute(sql, (ticker_to_buy,))
-        purchase_price: list[dict] = cursor.fetchall()
-        db_cnx.close()
-        return purchase_price 
-
     def create_portfolio(id: int, ticker_to_sell: str, quantity: int) -> None: 
         '''
         Creates new row in the portfolio table
