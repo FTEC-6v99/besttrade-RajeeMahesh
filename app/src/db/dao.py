@@ -122,7 +122,7 @@ def update_investor_status(id: int, status: str) -> None:
 '''
 def get_all_accounts() -> list[Account]:
     '''
-        Get list of all Accounts 
+        Get list of all Accounts [R]
     '''
     accounts: list[Account] = []
     db_cnx: MySQLConnection = get_cnx()
@@ -137,7 +137,7 @@ def get_all_accounts() -> list[Account]:
     
 def get_account_by_id(account_number: int) -> Account:
     '''
-    Get list of all Accounts by Account_Number
+    Get list of all Accounts by Account_Number [R]
     '''
     account: list[Account] = []
     db_cnx: MySQLConnection = get_cnx()
@@ -155,7 +155,7 @@ def get_account_by_id(account_number: int) -> Account:
 
 def get_accounts_by_investor_id(investor_id: int) -> list[Account]:
     '''
-    Get list of all Accounts by investor id
+    Get list of all Accounts by investor id [R]
     '''
     accounts: list[Account] = []
     db_cnx: MySQLConnection = get_cnx()
@@ -172,6 +172,9 @@ def get_accounts_by_investor_id(investor_id: int) -> list[Account]:
     return accounts 
 
 def delete_account(id: int) -> None:
+    '''
+    Delete row in the account table by investor id [D]
+    '''
     db_cnx: MySQLConnection = get_cnx()
     cursor = db_cnx.cursor()
     sql = 'delete from account where id = %s'
@@ -180,6 +183,9 @@ def delete_account(id: int) -> None:
     db_cnx.close()
 
 def update_acct_balance(balance: float, account_number: int) -> None:
+    '''
+    Updates the balance of the account given the account number [U]
+    '''
     db_cnx: MySQLConnection = get_cnx()
     cursor = db_cnx.cursor()
     sql = 'update account set balance = %s where account_number = %s'
@@ -188,6 +194,9 @@ def update_acct_balance(balance: float, account_number: int) -> None:
     db_cnx.close()
 
 def create_account(account: Account) -> None:
+    '''
+    Creates the new account for new investor with the availble balance to trade [C]
+    '''
     db_cnx: MySQLConnection = get_cnx()
     cursor = db_cnx.cursor()
     sql = 'insert into account(investor_id, balance) values(%s, %s)'
@@ -200,7 +209,7 @@ def create_account(account: Account) -> None:
 '''
 def get_all_portfolios() -> list[Portfolio]:
     '''
-    Get list of all Portfolio 
+    Get list of all Portfolio [R]
     '''
     accounts: list[Portfolio] = []
     db_cnx: MySQLConnection = get_cnx()
@@ -215,7 +224,7 @@ def get_all_portfolios() -> list[Portfolio]:
 
 def get_porfolios_by_acct_id(acct_id: int) -> list[Portfolio]:
     '''
-    Get list of all Portfolios by the account_number
+    Get list of all Portfolios by the account_number [R]
     '''
     accounts: list[Portfolio] = []
     db_cnx: MySQLConnection = get_cnx()
@@ -233,7 +242,7 @@ def get_porfolios_by_acct_id(acct_id: int) -> list[Portfolio]:
 
 def get_portfolios_by_investor_id(investor_id: int) -> list[Portfolio]:
     '''
-    Get list of all Portfolios by investor id by joining tables
+    Get list of all Portfolios by investor id by joining tables [R]
     '''
     accounts: list[Portfolio] = []
     db_cnx: MySQLConnection = get_cnx()
@@ -255,7 +264,7 @@ def get_portfolios_by_investor_id(investor_id: int) -> list[Portfolio]:
 
 def delete_portfolio(id: int, ticker: str) -> None:
     '''
-    Delete the Portfolios by account number and ticker
+    Delete the Portfolios by account number and ticker [D]
     '''
     db_cnx = get_cnx()
     cursor = db_cnx.cursor()
@@ -265,7 +274,23 @@ def delete_portfolio(id: int, ticker: str) -> None:
     db_cnx.close()
 
 def buy_stock(id: int, ticker_to_buy: str,  quantity: int, price: float) -> None:
-    def find_account_number(id: int) -> list[dict]:
+    """
+    When buy stock is clicked with mentioning
+        1. investor_id
+        2. ticker_to_buy
+        3. quantity
+        4. price
+        there are changes made in 3 tables 
+            1. portfolio table -> updated with additional stocks bought
+            2. stock_price table -> updated with the decrease in stock volume 
+            3. Investor account table -> updated with the reduced balance due to buying of stock
+    [C R U]
+    """
+
+    def find_account_number(id: int) -> list[dict]: 
+        '''
+        Helps in fetching account number of the investor who logged in to buy stocks [R]
+        '''
         db_cnx: MySQLConnection = get_cnx()
         cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
         sql: str = 'select account_number from account where investor_id = %s'
@@ -274,16 +299,10 @@ def buy_stock(id: int, ticker_to_buy: str,  quantity: int, price: float) -> None
         db_cnx.close()
         return account_number 
 
-    def fetch_stockprice():
-        db_cnx: MySQLConnection = get_cnx()
-        cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
-        sql: str = 'select current_price from account where ticker = %s'
-        cursor.execute(sql, (ticker_to_buy,))
-        purchase_price: list[dict] = cursor.fetchall()
-        db_cnx.close()
-        return purchase_price 
-
     def create_portfolio(id: int, ticker_to_sell: str, quantity: int) -> None: 
+        '''
+        Creates new row in the portfolio table [C]
+        '''
         db_cnx: MySQLConnection = get_cnx()
         cursor = db_cnx.cursor()
         account_number: list[dict] = find_account_number()
@@ -292,7 +311,10 @@ def buy_stock(id: int, ticker_to_buy: str,  quantity: int, price: float) -> None
         db_cnx.commit() # inserts, updates, and deletes
         db_cnx.close()
 
-    def update(quantity: int, ticker_to_buy: str, id: int) -> None:        
+    def update(quantity: int, ticker_to_buy: str, id: int) -> None: 
+        '''
+        updates a row which matches account_number and ticker_to_buy with the portfolio table [U]
+        '''       
         db_cnx: MySQLConnection = get_cnx()
         cursor = db_cnx.cursor()
         account_number: list[dict] = find_account_number()
@@ -303,6 +325,12 @@ def buy_stock(id: int, ticker_to_buy: str,  quantity: int, price: float) -> None
         db_cnx.close()
 
     def update_portfolio():
+        '''
+        On clicking buy stock, either of these two actions take place in portfolio table
+         -> Server checks whether the ticker is already present for this investor
+                if yes -> update the no of quantity -> update [U]
+                else -> it goes ahead to create new row -> create portfolio [C]
+        '''
         db_cnx: MySQLConnection = get_cnx()
         cursor = db_cnx.cursor(dictionary = True)
         sql = '''select ticker, account_number from portfolio'''
@@ -319,6 +347,10 @@ def buy_stock(id: int, ticker_to_buy: str,  quantity: int, price: float) -> None
             create_portfolio()
 
     def cal_account_balance(quantity: int, price: float, id: int) -> None:
+        '''
+        Updates balance in the account table with 
+        new balance = old balance - (quantity * price) [U]
+        '''
         stock_buy_rate = quantity * price
         db_cnx: MySQLConnection = get_cnx()
         cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
@@ -329,6 +361,10 @@ def buy_stock(id: int, ticker_to_buy: str,  quantity: int, price: float) -> None
         db_cnx.close()
 
     def stock_volume(quantity: int, ticker_to_buy: str):
+        '''
+        Updates stock volume in stock_price table with 
+        new stock = old volume - quantity [U]
+        '''
         db_cnx: MySQLConnection = get_cnx()
         cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
         sql = '''update stock_price set volume = volume - %s 
@@ -348,7 +384,24 @@ def sell_stock(id: int, ticker_to_sell: str, quantity: int, sale_price: float) -
     # Example: 10 APPL shares at $1/share with account balance $100
     # event: sale of 2 shares for $2/share
     # output: 8 APPLE shares at $1/share with account balance = 100 + 2 * (12 - 10) = $104
+
+    '''
+    When sell stock is clicked with mentioning
+        1. investor_id
+        2. ticker_to_sell
+        3. quantity
+        4. price
+        there are changes made in 3 tables 
+            1. portfolio table -> updated with stocks sold -> reducinng quantity of ticker sold
+            2. stock_price table -> updated with the increase in stock volume 
+            3. Investor account table -> updated with the increased balance due to selling of stock
+    [R U D]
+    '''
+
     def find_account_number(id: int) -> list[dict]:
+        '''
+        Helps in fetching account number of the investor who logged in to buy stocks [R]
+        '''
         db_cnx: MySQLConnection = get_cnx()
         cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
         sql: str = 'select account_number from account where investor_id = %s'
@@ -358,6 +411,9 @@ def sell_stock(id: int, ticker_to_sell: str, quantity: int, sale_price: float) -
         return account_number
 
     def delete_portfolio(id: int, ticker_to_sell: str) -> None:
+        '''
+        deletes portfolio by account number and ticker [D]
+        '''
         db_cnx: MySQLConnection = get_cnx()
         cursor = db_cnx.cursor()
         account_number: list[dict] = find_account_number()
@@ -367,6 +423,13 @@ def sell_stock(id: int, ticker_to_sell: str, quantity: int, sale_price: float) -
         db_cnx.close()
 
     def update_portfolio(id: int, ticker_to_sell: str) -> None:
+        '''
+        On clicking sell stock -> server checks the quantiy of the ticker for the particular 
+        investor -> either of these two actions take place,
+            if quantity = 0 -> delete_portfolio() [D]
+            else updates the row with the reduced quantity [U]        
+        '''
+
         db_cnx: MySQLConnection = get_cnx()
         cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
         account_number: list[dict] = find_account_number()
@@ -385,6 +448,10 @@ def sell_stock(id: int, ticker_to_sell: str, quantity: int, sale_price: float) -
             db_cnx.close()
 
     def cal_account_balance(quantity: int, sale_price: float, id: int):
+        '''
+        Updates balance in the account table with 
+        new balance = old balance + (quantity * price) [U]
+        '''
         stock_sell_rate = quantity * sale_price
         db_cnx = get_cnx()
         cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
@@ -395,6 +462,10 @@ def sell_stock(id: int, ticker_to_sell: str, quantity: int, sale_price: float) -
         db_cnx.close()
 
     def stock_volume(quantity: int, ticker_to_sell: str):
+        '''
+        Updates stock volume in stock_price table with 
+        new stock = old volume + quantity [U]
+        '''
         db_cnx: MySQLConnection = get_cnx()
         cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
         sql = '''update stock_price set volume = volume + %s 
