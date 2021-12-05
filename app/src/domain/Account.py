@@ -3,4 +3,3 @@ class Account():
         self.account_number = account_number
         self.investor_id = investor_id
         self.balance = balance 
-

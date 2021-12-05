@@ -7,6 +7,8 @@
 import typing as t
 from mysql.connector import connect, cursor
 from mysql.connector.connection import MySQLConnection
+from app.src.domain.Stock import Stock
+from app.src.domain.Stockprice import Stockprice
 import config
 from app.src.domain.Investor import Investor
 from app.src.domain.Account import Account
@@ -135,7 +137,7 @@ def get_all_accounts() -> list[Account]:
     db_cnx.close()
     return accounts
     
-def get_account_by_id(account_number: int) -> Account:
+def get_account_by_accno(account_number: int) -> Account:
     '''
     Get list of all Accounts by Account_Number [R]
     '''
@@ -149,7 +151,8 @@ def get_account_by_id(account_number: int) -> Account:
         print('No such account number found in the database!')
     else:
         for row in rows:
-            account.append(Account(row['account_number'], row['investor_id'], row['balance']))
+            #account.append(Account(row['account_number'], row['investor_id'], row['balance']))
+            account.append(Account(row['investor_id'], row['balance'], row['account_number']))
     db_cnx.close()
     return account 
 
@@ -173,11 +176,11 @@ def get_accounts_by_investor_id(investor_id: int) -> list[Account]:
 
 def delete_account(id: int) -> None:
     '''
-    Delete row in the account table by investor id [D]
+    Delete row in the account table by account number [D]
     '''
     db_cnx: MySQLConnection = get_cnx()
     cursor = db_cnx.cursor()
-    sql = 'delete from account where id = %s'
+    sql = 'delete from account where account_number = %s'
     cursor.execute(sql, (id,))
     db_cnx.commit() # inserts, updates, and deletes
     db_cnx.close()
@@ -188,7 +191,7 @@ def update_acct_balance(balance: float, account_number: int) -> None:
     '''
     db_cnx: MySQLConnection = get_cnx()
     cursor = db_cnx.cursor()
-    sql = 'update account set balance = %s where account_number = %s'
+    sql = 'update account set balance = balance + %s where account_number = %s'
     cursor.execute(sql, (balance, account_number,))
     db_cnx.commit() # inserts, updates, and deletes
     db_cnx.close()
@@ -272,6 +275,58 @@ def delete_portfolio(id: int, ticker: str) -> None:
     cursor.execute(sql, (id, ticker))
     db_cnx.commit() # inserts, updates, and deletes
     db_cnx.close()
+
+def get_all_stocks() -> list[Stock]:
+    '''
+        Get list of all Accounts [R]
+    '''
+    stocks: list[Stock] = []
+    db_cnx: MySQLConnection = get_cnx()
+    cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
+    sql: str = 'select * from stock'
+    cursor.execute(sql)
+    results: list[dict] = cursor.fetchall()
+    for row in results:
+        stocks.append(Stock(row['stock_id'], row['ticker'], row['company_name'], row['status'], row['current_price']))
+    db_cnx.close()
+    return stocks
+
+def get_all_stockprice() -> list[Stockprice]:
+    '''
+        Get list of all Accounts [R]
+    '''
+    stocks: list[Stockprice] = []
+    db_cnx: MySQLConnection = get_cnx()
+    cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
+    sql: str = 'select * from stock_price'
+    cursor.execute(sql)
+    results: list[dict] = cursor.fetchall()
+    for row in results:
+        stocks.append(Stockprice(row['stock_id'], row['date'], row['opening_price'], row['high'], row['low'], row['closing_price'], row['volume']))
+    db_cnx.close()
+    return stocks
+
+def get_stockprice_by_company_name(company_name: str) -> list[Stockprice]:
+    '''
+    Get the stock price details on clicking the ticker
+    '''
+    stocks: list[Stockprice] = []
+    db_cnx: MySQLConnection = get_cnx()
+    cursor = db_cnx.cursor(dictionary=True) # always pass dictionary = True
+    sql: str = ''' select sp.stock_id, date, opening_price, high, low, closing_price, volume
+                from stock s 
+                join stock_price sp 
+                on s.stock_id = sp.stock_id
+                where company_name = %s '''
+    cursor.execute(sql, (company_name,))
+    results: list[dict] = cursor.fetchall()
+    if results.count == 0:
+        print("No details exist for the company name selected, Try a different one")
+    else:
+        for row in results:
+            stocks.append(Stockprice(row['stock_id'], row['date'], row['opening_price'], row['high'], row['low'], row['closing_price'], row['volume']))
+    db_cnx.close()
+    return stocks
 
 def buy_stock(id: int, ticker_to_buy: str,  quantity: int, price: float) -> None:
     """
@@ -477,6 +532,17 @@ def sell_stock(id: int, ticker_to_sell: str, quantity: int, sale_price: float) -
     stock_volume()
     cal_account_balance()
     update_portfolio() 
+
+
+    inv = get_all_investor()
+    for i in inv:
+        print(f'Id: {i.id} - NAME----name: {i.name} - status: {i.status}')
+
+    # p = get_all_portfolios()
+    # for i in p:
+    #     print(f'acc no: {i.account_number} - ticker: {i.ticker} - qty: {i.quantity} - pp: {i.purchase_price}')
+    # print('printing..............')
+
 
 
 

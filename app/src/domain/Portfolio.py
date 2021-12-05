@@ -4,4 +4,3 @@ class Portfolio():
         self.ticker = ticker
         self.quantity = quantity
         self.purchase_price = purchase_price
-        
