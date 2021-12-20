@@ -1,0 +1,26 @@
+</doctype html> 
+<title> BEST TRADE - Account Details </title>
+<body>
+    <div>
+        <a href='/ui'>Home</a>
+    </div> 
+    <div>
+        <h1> Account DetailsPage </h1>        
+    </div>
+    <table>
+        <tr>
+            <th>Account number</th>
+            <th>Investor Id</th>
+            <th>Balance</th>
+            <th>Action</th>
+        </tr>
+        {% for account in accounts %}
+        <tr>
+            <td>{{ account.account_number }}</td>
+            <td>{{ account.investor_id }}</td>
+            <td>{{ account.balance }}</td>
+            <td><a href=''>Delete</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>

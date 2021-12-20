@@ -4,6 +4,7 @@ from app.src.api.blueprints.accountbp import account_bp
 from app.src.api.blueprints.portfoliobp import portfolio_bp
 from app.src.api.blueprints.stockbp import stock_bp
 from app.src.api.blueprints.stockpricebp import stockprice_bp
+from app.src.api.blueprints.uibp import uibp
 
 app = Flask(__name__)
 
@@ -16,6 +17,8 @@ app.register_blueprint(account_bp)
 app.register_blueprint(portfolio_bp)
 app.register_blueprint(stock_bp)
 app.register_blueprint(stockprice_bp)
+
+app.register_blueprint(uibp)
 
 
 if __name__ == '__main__':
